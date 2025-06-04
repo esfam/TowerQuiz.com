@@ -1,0 +1,37 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Departmental Quiz - Tower College</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <img src="college-logo.png" alt="College Logo" class="logo">
+        <marquee>TOWER DEPARTMENTAL QUIZ</marquee>
+        
+        <div id="quiz-container">
+            <h2 id="department-header"></h2>
+            <p id="timer">Time Remaining: 15:00</p>
+            
+            <div id="question-container">
+                <h3 id="question-number"></h3>
+                <p id="question-text"></p>
+                <div id="options-container"></div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button onclick="previousQuestion()">Previous</button>
+                <button onclick="nextQuestion()">Next</button>
+                <button onclick="submitQuiz()" id="submit-btn">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="quiz.js"></script>
+</body>
+</html>
+

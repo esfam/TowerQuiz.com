@@ -1,0 +1,83 @@
+<meta name='viewport' content='width=device-width, initial-scale=1'/><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tower College Quiz System</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <img src="college-logo.png" alt="College Logo" class="logo">
+        <div WELCOME TO TOWER  QUIZ SYSTEM</div>
+
+        <!-- Bio-data Form -->
+        <div id="bio-data">
+            <h2>Student Information</h2>
+            <form id="studentForm">
+                <label for="name">Full Name:</label>
+                <input type="text" id="name" required>
+                
+                <label for="matric">Matric No:</label>
+                <input type="text" id="matric" required>
+                
+                <label for="department">Department:</label>
+                <select id="department" required>
+                    <option value="">Select Department</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Accounting">Accounting</option>
+                    <option value="Nursing Science">Nursing Science</option>
+                    <option value="International Relations">International Relations</option>
+                    <option value="Public Administration">Public Administration</option>
+                </select>
+                
+                <label for="level">Level:</label>
+                <select id="level" required>
+                    <option value="">Select Level</option>
+                    <option value="100">100</option>
+                    <option value="200">200</option>
+                    <option value="300">300</option>
+                    <option value="400">400</option>
+                </select>
+                
+                <button type="button" onclick="startQuiz()">Start Quiz</button>
+            </form>
+        </div>
+
+        <!-- Quiz Interface -->
+        <div id="quiz-container" style="display: none;">
+            <h1 id="department-header"></h1>
+            <div class="timer-container">
+                <i class="fas fa-clock"></i>
+                <span id="timer">15:00</span>
+            </div>
+            
+            <div class="question-card">
+                <div class="question-header">
+                    <span id="question-number"></span>
+                </div>
+                <p id="question-text"></p>
+                <div id="options-container"></div>
+            </div>
+
+            <div class="navigation-buttons">
+                <button type="button" onclick="previousQuestion()" id="prev-btn">
+                    <i class="fas fa-chevron-left"></i> Previous
+                </button>
+                <button type="button" onclick="nextQuestion()" id="next-btn">
+                    Next <i class="fas fa-chevron-right"></i>
+                </button>
+                <button type="button" onclick="submitQuiz()" id="submit-btn">
+                    <i class="fas fa-paper-plane"></i> Submit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script src="quiz.js"></script>
+</body>
+</html>
+

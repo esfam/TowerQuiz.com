@@ -76,58 +76,22 @@ function renderOptions(options, qIndex) {
     options.forEach((option, oIndex) => {
         const optionDiv = document.createElement('div');
         optionDiv.className = 'option';
-        optionDiv.innerHTML = `
-            <input type="radio" name="q${qIndex}" id="opt-${qIndex}-${oIndex}"
-                   ${userAnswers[qIndex] === oIndex ? 'checked' : ''}>
-            <label for="opt-${qIndex}-${oIndex}">${option}</label>
-        `;
-        optionDiv.querySelector('input').addEventListener('change', () => {
-            userAnswers[qIndex] = oIndex;
-        });
-        container.appendChild(optionDiv);
-    });
-}
-
-function updateNavigation(currentIndex, totalQuestions) {
-    document.getElementById('prev-btn').disabled = currentIndex === 0;
-    document.getElementById('next-btn').style.display = 
-        currentIndex === totalQuestions - 1 ? 'none' : 'block';
-    document.getElementById('submit-btn').style.display = 
-        currentIndex === totalQuestions - 1 ? 'block' : 'none';
-}
-
-function previousQuestion() {
-    if (currentQuestion > 0) showQuestion(--currentQuestion);
-}
-
-function nextQuestion() {
-    const total = questions[studentData.department].length;
-    if (currentQuestion < total - 1) showQuestion(++currentQuestion);
-}
-
-async function submitQuiz() {
-    clearInterval(timerInterval);
-    
-    try {
-        const score = calculateScore();
-        await generateCertificate(score);
-    } catch (error) {
-        console.error('Submission Error:', error);
-        alert('Error generating certificate. Please try again.');
-    } finally {
-        setTimeout(() => window.location.reload(), 3000);
-    }
-}
-
-function calculateScore() {
-    return questions[studentData.department].reduce((acc, q, index) => 
-        acc + (userAnswers[index] === q.answer ? 1 : 0), 0);
-}
-
 async function generateCertificate(score) {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
+    const totalQuestions = questions[studentData.department].length;
     let yPos = 20;
+
+    // Performance remark based on score
+    const getPerformanceRemark = () => {
+        const percentage = (score / totalQuestions) * 100;
+        
+        if (percentage >= 90) return "Excellent!";
+        if (percentage >= 75) return "Very Good!";
+        if (percentage >= 60) return "Good!";
+        if (percentage >= 40) return "Fair";
+        return "Needs Improvement";
+    };
 
     try {
         const img = await loadImage('college-logo.png');
@@ -152,7 +116,8 @@ async function generateCertificate(score) {
         `Matric Number: ${studentData.matric}`,
         `Department: ${studentData.department}`,
         `Academic Level: ${studentData.level}`,
-        `Score: ${score}/${questions[studentData.department].length}`,
+        `Score: ${score}/${totalQuestions}`,
+        `Performance: ${getPerformanceRemark()}`,
         `Date: ${new Date().toLocaleDateString()}`
     ];
     
@@ -162,16 +127,65 @@ async function generateCertificate(score) {
     });
     
     yPos += 15;
+    
+    // Add visual performance indicator
+    doc.setDrawColor(200, 200, 200);
+    doc.setFillColor(240, 240, 240);
+    doc.rect(30, yPos, pageWidth - 60, 15, 'F');
+    
+    const progressWidth = (pageWidth - 60) * (score / totalQuestions);
+    doc.setFillColor(
+        score === totalQuestions ? 46, 204, 113 : // Green for perfect
+        score >= totalQuestions * 0.75 ? 52, 152, 219 : // Blue for very good
+        score >= totalQuestions * 0.6 ? 241, 196, 15 : // Yellow for good
+        score >= totalQuestions * 0.4 ? 243, 156, 18 : // Orange for fair
+        231, 76, 60 // Red for poor
+    );
+    doc.rect(30, yPos, progressWidth, 15, 'F');
+    yPos += 25;
+    
+    // Heartfelt message based on performance
     doc.setFontSize(14);
     doc.setTextColor(60, 60, 60);
-    const message = [
-        "This certificate is proudly presented to recognize",
-        "your academic achievement and dedication to learning.",
-        "Your success demonstrates commitment to excellence",
-        "and we celebrate your intellectual growth.",
-        "Keep striving for greater heights!",
-        "~ Tower College Academic Board ~"
-    ];
+    
+    let message;
+    if (score === totalQuestions) {
+        message = [
+            "Exceptional performance! You've demonstrated complete mastery",
+            "of the subject matter. Your perfect score is a testament to",
+            "your dedication and hard work. Keep setting the bar high!",
+            "~ Tower College Academic Board ~"
+        ];
+    } else if (score >= totalQuestions * 0.75) {
+        message = [
+            "Outstanding achievement! You've shown excellent understanding",
+            "of the core concepts. Your performance demonstrates strong",
+            "knowledge and analytical skills. Continue striving for excellence!",
+            "~ Tower College Academic Board ~"
+        ];
+    } else if (score >= totalQuestions * 0.6) {
+        message = [
+            "Good performance! You have a solid grasp of the material",
+            "with room to grow. Your results show good understanding of",
+            "key concepts. Keep building on this foundation!",
+            "~ Tower College Academic Board ~"
+        ];
+    } else if (score >= totalQuestions * 0.4) {
+        message = [
+            "Fair performance. You've demonstrated basic understanding",
+            "but should focus on strengthening your knowledge. Review the",
+            "material and don't hesitate to seek help from instructors.",
+            "~ Tower College Academic Board ~"
+        ];
+    } else {
+        message = [
+            "Your results indicate you need to strengthen your understanding.",
+            "This is an opportunity to identify areas for improvement.",
+            "Meet with your instructors for guidance and dedicate more",
+            "time to studying. You can improve!",
+            "~ Tower College Academic Board ~"
+        ];
+    }
     
     message.forEach(line => {
         doc.text(line, pageWidth/2, yPos, { align: 'center' });
@@ -179,14 +193,4 @@ async function generateCertificate(score) {
     });
 
     doc.save(`certificate-${studentData.matric}.pdf`);
-}
-
-function loadImage(src) {
-    return new Promise((resolve, reject) => {
-        const img = new Image();
-        img.crossOrigin = "Anonymous";
-        img.onload = () => resolve(img);
-        img.onerror = reject;
-        img.src = src;
-    });
-}
+        }

@@ -3,6 +3,8 @@ let timeLeft = 900;
 let timerInterval;
 let userAnswers = [];
 let studentData = null;
+let quizScore = 0;
+let performanceRemark = "";
 const { jsPDF } = window.jspdf;
 
 // Initialize Quiz
@@ -109,19 +111,105 @@ async function submitQuiz() {
     clearInterval(timerInterval);
     
     try {
-        const score = calculateScore();
-        await generateCertificate(score);
+        quizScore = calculateScore();
+        performanceRemark = getPerformanceRemark(quizScore);
+        
+        // Hide quiz interface
+        document.getElementById('quiz-container').style.display = 'none';
+        
+        // Show results
+        showResults();
     } catch (error) {
         console.error('Submission Error:', error);
-        alert('Error generating certificate. Please try again.');
-    } finally {
-        setTimeout(() => window.location.reload(), 3000);
+        alert('Error processing results. Please try again.');
     }
 }
 
 function calculateScore() {
     return questions[studentData.department].reduce((acc, q, index) => 
         acc + (userAnswers[index] === q.answer ? 1 : 0), 0);
+}
+
+function getPerformanceRemark(score) {
+    const total = questions[studentData.department].length;
+    if (score === total) return "Great!";
+    if (score >= 12) return "Good";
+    if (score >= 9) return "Fair";
+    return "Poor";
+}
+
+function getPerformanceMessage(score, total) {
+    if (score === total) {
+        return `
+            <p class="message-line">🏆 Exceptional performance! You've demonstrated complete mastery 
+            of the subject matter.</p>
+            <p class="message-line">Your perfect score is a testament to your dedication and hard work. 
+            Keep setting the bar high!</p>
+        `;
+    } else if (score >= 12) {
+        return `
+            <p class="message-line">⭐ Excellent achievement! You've shown strong understanding of 
+            the core concepts.</p>
+            <p class="message-line">Your performance demonstrates good knowledge and analytical skills. 
+            Continue striving for excellence!</p>
+        `;
+    } else if (score >= 9) {
+        return `
+            <p class="message-line">👍 Good performance! You have a fair grasp of the material 
+            with room to grow.</p>
+            <p class="message-line">Your results show understanding of key concepts. 
+            Keep building on this foundation!</p>
+        `;
+    } else {
+        return `
+            <p class="message-line">📚 Your results indicate you need to strengthen your understanding.</p>
+            <p class="message-line">This is an opportunity to identify areas for improvement. 
+            Meet with your instructors for guidance.</p>
+        `;
+    }
+}
+
+function showResults() {
+    const container = document.querySelector('.container');
+    const totalQuestions = questions[studentData.department].length;
+    
+    // Create results container
+    const resultsContainer = document.createElement('div');
+    resultsContainer.id = 'results-container';
+    resultsContainer.className = 'results-container';
+    
+    resultsContainer.innerHTML = `
+        <div class="results-card">
+            <h2><i class="fas fa-medal"></i> Quiz Results</h2>
+            <div class="performance-summary">
+                <div class="score-display">${quizScore}/${totalQuestions}</div>
+                <div class="performance-remark">${performanceRemark}</div>
+            </div>
+            
+            <div class="performance-message">
+                ${getPerformanceMessage(quizScore, totalQuestions)}
+            </div>
+            
+            <div class="result-buttons">
+                <button onclick="downloadCertificate()" class="download-btn">
+                    <i class="fas fa-download"></i> Download Certificate
+                </button>
+                <button onclick="restartQuiz()" class="restart-btn">
+                    <i class="fas fa-redo"></i> Take Again
+                </button>
+            </div>
+        </div>
+    `;
+    
+    container.appendChild(resultsContainer);
+}
+
+function downloadCertificate() {
+    generateCertificate(quizScore);
+}
+
+function restartQuiz() {
+    window.location.reload();
 }
 
 async function generateCertificate(score) {
@@ -246,4 +334,4 @@ function loadImage(src) {
         img.onerror = reject;
         img.src = src;
     });
-}
+        }
